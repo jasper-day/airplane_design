@@ -6,6 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import sys
 
 def parse_dir(directory):
     files = os.listdir(directory)
@@ -103,9 +104,10 @@ filename_regexes = {
     "naca h-series":  re.compile(r"n\dh\d+"),
     "nasa/naca":      re.compile(r"n.*"),
     "naca 4-digit":   re.compile(r"n(aca)?\d{4}\D+"),
-    "naca 5-digit":   re.compile(r"n\d{5}\D+|naca\d{2}[a-z0-9-]\d{3}|naca\d{5}"),
+    "naca 5-digit":   re.compile(r"n[012345789]\d{4}\D+|naca[012345789]\d[a-z0-9-]\d{3}|naca[012345789]\d{4}"),
+    "naca 6-series":  re.compile(r"n6\d{4}\D+|naca6\d{1}[a-z0-9-]\d{3}|naca6\d{4}"),
     "naca 6-digit":   re.compile(r"naca\d{3}\D\d{3}|naca\d{6}"),
-    "nasa nlf":       re.compile(r"nlf.+")e
+    "nasa nlf":       re.compile(r"nlf.+"),
     "nasa rc":        re.compile(r"rc.*"),
     "nasa sc":        re.compile(r"sc\d{5}"),
     "p-51d":          re.compile(r"p51.*"),
@@ -119,6 +121,9 @@ filename_regexes = {
     "usa":            re.compile(r"usa\w+"),
     "boeing vtol":    re.compile(r"v\d{5}|vr.*"),
 }
+
+def find_re(name):
+    return filename_regexes[name]
 
 def regex_pred(regex):
     return lambda airfoil: regex.fullmatch(airfoil["filename"])
@@ -151,3 +156,31 @@ def plot_coordinates(ax, coordinates, title=None, plot_chord=False):
     ax.spines['right'].set_visible(False)
     ax.set_xlabel(title[:30])
 
+def make_subplots(axs, airfoils, nrows, ncols):
+    for i in range(nrows):
+        for j in range(ncols):
+            airfoil = airfoils[j + ncols*i]
+            plot_coordinates(axs[i,j], airfoil["coordinates"], airfoil["title"])
+
+
+def main(argv = []):
+    if argv:
+        path = argv[1]
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                try:
+                    airfoils = parse_dir(path)
+                except Exception as e:
+                    print(e)
+            elif os.path.isfile(path):
+                try:
+                    airfoil = parse_file(path)
+                except Exception as e:
+                    print(e)
+            else:
+                print(f"Could not find directory or file: {path}")
+    else:
+        print("Please run with a file name or directory.")
+
+if __name__ == "__main__":
+    main(sys.argv)
