@@ -92,6 +92,19 @@ def make_all_charts(axs, y, loading, youngs_mod, I_zz):
     plot_data(axs[1,1], y[:-4], disp, ylabel="displacement (m)")
     # axs[0,0].axis([min(y)-0.5, max(y)+0.5, -1, max(loading)])
 
+def get_parameters(material, outer_diam, inner_diam, b, W, gs):
+    if material in ['cfrp', 'CFRP']:
+        youngs_mod = (CFRP.E_lower + CFRP.E_upper)/2 * 1e9
+    elif material in ['gfrp', 'GFRP']:
+        youngs_mod = (GFRP.E_lower + GFRP.E_upper)/2 * 1e9
+    else:
+        raise ValueError(f"material {material} not recognized")
+    weight = find_weight(W, gs)
+    I_zz = find_I_hollow_cyl(outer_diam, inner_diam)
+    y = np.linspace(-b/2, b/2, 1000)
+    loading = find_loading(weight, y)
+    return {"y":y, "loading":loading, "youngs_mod":youngs_mod, "I_zz":I_zz}
+
 if __name__ == "__main__":
     youngs_mod_cfrp = (CFRP.E_lower + CFRP.E_upper)/2 * 1e9
     I_zz = find_I_hollow_cyl(0.025,0.020) # 25mm OD by 20mm ID

@@ -54,7 +54,9 @@ class Airfoil(Base):
         }
         return airfoil_dict
 
-engine = create_engine('sqlite:///../data/design.db')
+# problems with relative path
+# engine = create_engine('sqlite:///../data/design.db')
+engine = create_engine('sqlite:///data/design.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
