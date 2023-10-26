@@ -79,6 +79,7 @@ def _parse_coordinates(lines):
     res = {"title": title, "coordinates": coords}
     # find upper and lower planforms
     if [0,0] not in coords:
+        # find where dx reverses
         origin_index = find_sign_change(coords)
     else:
         origin_index = coords.index([0,0])
@@ -230,13 +231,13 @@ def main(argv = []):
             if os.path.isdir(path):
                 try:
                     airfoils = parse_dir(path)
-                    insert_airfoils(airfoils)
+                    #insert_airfoils(airfoils)
                 except Exception as e:
                     print(e)
             elif os.path.isfile(path):
                 try:
                     airfoil = parse_file(path)
-                    insert_airfoil(airfoil)
+                    #insert_airfoil(airfoil)
                 except Exception as e:
                     print(e)
             else:
