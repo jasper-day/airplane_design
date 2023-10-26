@@ -62,8 +62,30 @@ def _parse_coordinates(lines):
         coords.append((x, y))
     res = {"title": title, "coordinates": coords}
     # find upper and lower planforms
-
+    if (0,0) not in coords:
+        origin_index = find_sign_change(coords)
+    else:
+        origin_index = coords.index((0,0))
+    upper_planform = coords[:origin_index+1]
+    # add trailing edge to both
+    if (1,0) not in upper_planform:
+        upper_planform.insert(0, (1,0))
+    lower_planform = coords[origin_index:]
+    if (1,0) not in lower_planform:
+        lower_planform.append((1,0))
     return res
+
+def find_sign_change(coordinates):
+    for i in range(len(coordinates) - 2):
+        y1 = coordinates[i][0]
+        y2 = coordinates[i + 1][0]
+        y3 = coordinates[i + 2][0]
+        d1 = y2 - y1
+        d2 = y3 - y2
+        if np.sign(d1) == -1 and np.sign(d2) != np.sign(d1):
+            return i
+    raise ValueError("Sign change not found")
+
 
 filename_regexes = {
     "ag (mark drela)":re.compile(r"ag\d{2}(.*)?"),
@@ -125,7 +147,7 @@ filename_regexes = {
 def find_re(name):
     return filename_regexes[name]
 
-def regex_pred(regex):
+def regex_pred_fn(regex):
     return lambda airfoil: regex.fullmatch(airfoil["filename"])
 
 def no_regex_pred(regex_dict):
@@ -138,8 +160,11 @@ def no_regex_pred(regex_dict):
         return res
     return predicate
 
-def matching_foils(regex, airfoils):
+def matching_foils_fn(regex, airfoils):
     return [foil for foil in filter(regex_pred(regex), airfoils)]
+
+def sort_by_name(airfoils):
+    airfoils.sort(key=lambda airfoil: airfoil['filename'])
 
 def plot_coordinates(ax, coordinates, title=None, plot_chord=False):
     coords = np.array(coordinates)
