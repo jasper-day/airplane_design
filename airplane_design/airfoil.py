@@ -1,5 +1,16 @@
 """
 Import and parse airfoil data
+
+airfoil:
+{
+    "title": Name of the airfoil
+    "filename": filename (no extension)
+    "extension": file extension
+    "path": path to .dat file
+    "coordinates": list of (x,y) tuples defining the airfoil
+    "upper_planform": list of (x,y) tuples defining the top surface of the airfoil
+    "lower_planform": list of (x,y) tuples defining the lower surface of the airfoil
+}
 """
 
 import re
@@ -62,17 +73,19 @@ def _parse_coordinates(lines):
         coords.append((x, y))
     res = {"title": title, "coordinates": coords}
     # find upper and lower planforms
-    if (0,0) not in coords:
+    if [0,0] not in coords:
         origin_index = find_sign_change(coords)
     else:
-        origin_index = coords.index((0,0))
+        origin_index = coords.index([0,0])
     upper_planform = coords[:origin_index+1]
     # add trailing edge to both
-    if (1,0) not in upper_planform:
+    if [1,0] not in upper_planform:
         upper_planform.insert(0, (1,0))
     lower_planform = coords[origin_index:]
-    if (1,0) not in lower_planform:
-        lower_planform.append((1,0))
+    if [1,0] not in lower_planform:
+        lower_planform.append([1,0])
+    res["upper_planform"] = upper_planform
+    res["lower_planform"] = lower_planform
     return res
 
 def find_sign_change(coordinates):
@@ -88,64 +101,64 @@ def find_sign_change(coordinates):
 
 
 filename_regexes = {
-    "ag (mark drela)":re.compile(r"ag\d{2}(.*)?"),
-    "althaus":        re.compile(r"ah\d\d(.*)?"),
-    "nasa ames":      re.compile(r"ames\d\d"),
-    "amsoil":         re.compile(r"amsoil\d"),
-    "arad: ":         re.compile(r"arad\d{2}"),
-    "ananda-selig":   re.compile(r"as\d{4}"),
-    "boeing":         re.compile(r"b(7\d\d.)?(oe\d{3})?(ac.*)?"),
-    "bambino":        re.compile(r"e?bambino\d?"),
-    "lockheed":       re.compile(r"c(\d\w)?(\d{3}\w)?"),
-    "clark":          re.compile(r"clar[ky]\w+"),
-    "coanda":         re.compile(r"coanda\d"),
-    "curtiss":        re.compile(r"c(r\w+)?(urtis\w+)"),
-    "dae":            re.compile(r"dae\d{2}"),
-    "davis":          re.compile(r"davis[a-z_]*"),
-    "daytona-wright": re.compile(r"dayton\w*"),
-    "sikorsky":       re.compile(r"(dbln\d{3})?(gs\d)?|sc\d{4}(\D.*)?|ssca\d+"),
-    "defiant":        re.compile(r"def\w+"),
-    "e-series":       re.compile(r"e\d+"),
-    "eh-series":      re.compile(r"eh\d{4}"),
-    "wright eiffel":  re.compile(r"eiffel\d+"),
-    "fage & collins": re.compile(r"fg\d"),
-    "wortmann fx":    re.compile(r"fx\w+"),
-    "giii":           re.compile(r"giii\w"),
-    "glenn martin":   re.compile(r"(glenn\w+)?(gm\w+)"),
-    "goe gottingen":  re.compile(r"goe\w+"),
-    "hq":             re.compile(r"hq\d+\w+"),
-    "ham-std":        re.compile(r"hs\d+"),
-    "ht":             re.compile(r"ht\d\d"),
-    "isa":            re.compile(r"isa\d+"),
-    "ist":            re.compile(r"ist[a-z0-9-]+"),
-    "nasa low-speed": re.compile(r"ls\d+(mod)?"),
-    "naca-m":         re.compile(r"(naca)?m\d\d?"),
-    "marske":         re.compile(r"marske\d"),
-    "mh":             re.compile(r"mh\d+"),
-    "nasa ms":        re.compile(r"ms\d+"),
-    "naca h-series":  re.compile(r"n\dh\d+"),
-    "nasa/naca":      re.compile(r"n.*"),
-    "naca 4-digit":   re.compile(r"n(aca)?\d{4}\D+"),
-    "naca 5-digit":   re.compile(r"n[012345789]\d{4}\D+|naca[012345789]\d[a-z0-9-]\d{3}|naca[012345789]\d{4}"),
-    "naca 6-series":  re.compile(r"n6\d{4}\D+|naca6\d{1}[a-z0-9-]\d{3}|naca6\d{4}"),
-    "naca 6-digit":   re.compile(r"naca\d{3}\D\d{3}|naca\d{6}"),
-    "nasa nlf":       re.compile(r"nlf.+"),
-    "nasa rc":        re.compile(r"rc.*"),
-    "nasa sc":        re.compile(r"sc\d{5}"),
-    "p-51d":          re.compile(r"p51.*"),
-    "rae":            re.compile(r"rae\d+.*"),
-    "raf":            re.compile(r"raf\d+.*"),
-    "rg":             re.compile(r"rg.*"),
-    "rhodes":         re.compile(r"rhodes.*"),
-    "s-4digit hpv":   re.compile(r"s\d{4}.*"),
-    "sd-4digit":      re.compile(r"sd\d{4}"),
-    "sg-4digit":      re.compile(r"sg\d{4}"),
-    "usa":            re.compile(r"usa\w+"),
-    "boeing vtol":    re.compile(r"v\d{5}|vr.*"),
+    "ag (mark drela)":r"ag\d{2}(.*)?",
+    "althaus":        r"ah\d\d(.*)?",
+    "nasa ames":      r"ames\d\d",
+    "amsoil":         r"amsoil\d",
+    "arad: ":         r"arad\d{2}",
+    "ananda-selig":   r"as\d{4}",
+    "boeing":         r"b(7\d\d.)?(oe\d{3})?(ac.*)?",
+    "bambino":        r"e?bambino\d?",
+    "lockheed":       r"c(\d\w)?(\d{3}\w)?",
+    "clark":          r"clar[ky]\w+",
+    "coanda":         r"coanda\d",
+    "curtiss":        r"c(r\w+)?(urtis\w+)",
+    "dae":            r"dae\d{2}",
+    "davis":          r"davis[a-z_]*",
+    "daytona-wright": r"dayton\w*",
+    "sikorsky":       r"(dbln\d{3})?(gs\d)?|sc\d{4}(\D.*)?|ssca\d+",
+    "defiant":        r"def\w+",
+    "e-series":       r"e\d+",
+    "eh-series":      r"eh\d{4}",
+    "wright eiffel":  r"eiffel\d+",
+    "fage & collins": r"fg\d",
+    "wortmann fx":    r"fx\w+",
+    "giii":           r"giii\w",
+    "glenn martin":   r"(glenn\w+)?(gm\w+)",
+    "goe gottingen":  r"goe\w+",
+    "hq":             r"hq\d+\w+",
+    "ham-std":        r"hs\d+",
+    "ht":             r"ht\d\d",
+    "isa":            r"isa\d+",
+    "ist":            r"ist[a-z0-9-]+",
+    "nasa low-speed": r"ls\d+(mod)?",
+    "naca-m":         r"(naca)?m\d\d?",
+    "marske":         r"marske\d",
+    "mh":             r"mh\d+",
+    "nasa ms":        r"ms\d+",
+    "naca h-series":  r"n\dh\d+",
+    "nasa/naca":      r"n.*",
+    "naca 4-digit":   r"n(aca)?\d{4}\D+",
+    "naca 5-digit":   r"n[012345789]\d{4}\D+|naca[012345789]\d[a-z0-9-]\d{3}|naca[012345789]\d{4}",
+    "naca 6-series":  r"n6\d{4}\D+|naca6\d{1}[a-z0-9-]\d{3}|naca6\d{4}",
+    "naca 6-digit":   r"naca\d{3}\D\d{3}|naca\d{6}",
+    "nasa nlf":       r"nlf.+",
+    "nasa rc":        r"rc.*",
+    "nasa sc":        r"sc\d{5}",
+    "p-51d":          r"p51.*",
+    "rae":            r"rae\d+.*",
+    "raf":            r"raf\d+.*",
+    "rg":             r"rg.*",
+    "rhodes":         r"rhodes.*",
+    "s-4digit hpv":   r"s\d{4}.*",
+    "sd-4digit":      r"sd\d{4}",
+    "sg-4digit":      r"sg\d{4}",
+    "usa":            r"usa\w+",
+    "boeing vtol":    r"v\d{5}|vr.*",
 }
 
 def find_re(name):
-    return filename_regexes[name]
+    return re.compile(filename_regexes[name])
 
 def regex_pred_fn(regex):
     return lambda airfoil: regex.fullmatch(airfoil["filename"])
