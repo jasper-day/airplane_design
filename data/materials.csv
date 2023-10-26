@@ -1,0 +1,88 @@
+material_name,youngs_modulus_lower,youngs_modulus_upper
+diamond,1000,1000
+tungsten carbide,450,650
+osmium,551,551
+tungsten carbide cermet,400,530
+cobalt carbide,400,530
+ti boride,450,500
+zr boride,450,500
+hf boride,450,500
+silicon carbide,430,445
+boron,441,441
+tungsten,380,411
+alumina,385,392
+beryllia,375,385
+titanium carbide,370,380
+tantalum carbide,360,375
+molybdenum,320,365
+niobium carbide,320,340
+silicon nitride,280,310
+beryllium,290,318
+chromium,285,290
+magnesia,240,275
+cobalt,200,248
+zirconia,160,241
+nickel,214,214
+nickel alloy,130,234
+cfrp,70,200
+iron,196,196
+iron super alloy,193,214
+ferritic steel,196,207
+stainless steel,190,200
+mild steel,200,200
+cast iron,170,190
+tantalum,150,186
+platinum,172,172
+uranium,172,172
+boron/epoxy composite,80,160
+copper,124,124
+copper alloy,120,150
+mullite,145,145
+vanadium,130,130
+titanium,116,116
+titanium alloy,80,130
+palladium,124,124
+brass,103,124
+bronze,103,124
+niobium,80,110
+silicon,107,107
+zirconium,96,96
+silica glass (quartz),94,94
+zinc alloy,43,96
+gold,82,82
+aluminum,69,69
+aluminum alloys,69,79
+silver,76,76
+soda glass,69,69
+alkali halides (salt),15,68
+granite,62,62
+tin alloy,41,53
+concrete,30,50
+cement,30,50
+fiberglass (glass-fiber/epoxy),35,45
+magnesium alloy,41,45
+gfrp,7,45
+calcite,31,31
+graphite,27,27
+shale,18,18
+wood (parallel to grain),9,16
+lead alloy,16,18
+alkyds,14,17
+ice,9.1,9.1
+melamines,6,7
+polyimides,3,5
+polyesters,1.8,3.5
+acrylics,1.6,3.4
+nylon,2,4
+pmma,3.4,3.4
+polystyrene,3,3.4
+epoxies,2.6,3
+polycarbonate,2.6,2.6
+wood (perpendicular to grain),0.6,1.0
+polypropylene,0.9,0.9
+pvc,0.2,0.8
+polyethylene (high density),0.7,0.7
+polyethylene (low density),0.2,0.2
+rubbers,0.01,0.1
+cork,0.01,0.03
+foamed polymers,0.001,0.01
