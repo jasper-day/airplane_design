@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 import airfoil
 
 # sort the airfoils by thickness
-airfoils = session.execute(select(Airfoil).order_by(Airfoil.thickness)).all()
+airfoils = session.scalars(select(Airfoil).order_by(Airfoil.thickness)).all()
 
 # load the first 20 coordinates (note that data comes serialized)
 coordinates = [json.loads(a.coordinates) for a in airfoils]
