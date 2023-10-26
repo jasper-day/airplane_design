@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
+from scipy import interpolate
+from data import Airfoil
 
 def parse_dir(directory):
     files = os.listdir(directory)
@@ -40,19 +42,21 @@ def parse_file(filename):
         e.add_note(f"Error opening file: {filename}")
         raise e
     try:
-        airfoil = _parse_coordinates(lines)
+        airfoil_dict = _parse_coordinates(lines)
     except ValueError as e:
         e.add_note(f"At file: {filename}")
         raise e
-    if airfoil:
+    if airfoil_dict:
         fdata = os.path.split(filename)
         path = fdata[0]
         fname_data = os.path.splitext(fdata[1])
         filename = fname_data[0]
         extension = fname_data[1]
-        airfoil["filename"] = filename
-        airfoil["extension"] = extension
-        airfoil["path"] = path
+        airfoil_dict["filename"] = filename
+        airfoil_dict["extension"] = extension
+        airfoil_dict["path"] = path
+        # ORM class
+        airfoil = Airfoil(**airfoil_dict)
         return airfoil
     else:
         return None
@@ -88,7 +92,7 @@ def _parse_coordinates(lines):
     res["upper_planform"] = upper_planform
     res["lower_planform"] = lower_planform
     # Find airfoil thickness
-    thickness = find_thickness(coords)
+    thickness = find_thickness(upper_planform, lower_planform)
     res["thickness"] = thickness
     return res
 
@@ -103,9 +107,16 @@ def find_sign_change(coordinates):
             return i
     raise ValueError("Sign change not found")
 
-def find_thickness(coordinates):
-    y = [y for [x,y] in coordinates]
-    return max(y) - min(y)
+def find_thickness(upper,lower):
+    get_ys = lambda coords: [y for [x,y] in coords]
+    get_xs = lambda coords: [x for [x,y] in coords]
+    # linear interpolation between values
+    f_upper = interpolate.interp1d(get_xs(upper), get_ys(upper))
+    f_lower = interpolate.interp1d(get_xs(lower), get_ys(lower))
+    f_thickness = lambda x: f_upper(x) - f_lower(x)
+    x = np.linspace(0,1,1000)
+    y = f_thickness(x)
+    return max(y)
 
 
 filename_regexes = {
@@ -165,27 +176,28 @@ filename_regexes = {
     "boeing vtol":    r"v\d{5}|vr.*",
 }
 
-def find_re(name):
-    return re.compile(filename_regexes[name])
-
-def regex_pred_fn(regex):
-    return lambda airfoil: regex.fullmatch(airfoil["filename"])
-
-def no_regex_pred(regex_dict):
-    def predicate(airfoil):
-        res = True
-        for regex in regex_dict.values():
-            if regex.fullmatch(airfoil["filename"]):
-                res = False
-                break
-        return res
-    return predicate
-
-def matching_foils_fn(regex, airfoils):
-    return [foil for foil in filter(regex_pred(regex), airfoils)]
-
-def sort_by_name(airfoils):
-    airfoils.sort(key=lambda airfoil: airfoil['filename'])
+#Functions no longer needed
+#def find_re(name):
+#    return re.compile(filename_regexes[name])
+#
+#def regex_pred_fn(regex):
+#    return lambda airfoil: regex.fullmatch(airfoil["filename"])
+#
+#def no_regex_pred(regex_dict):
+#    def predicate(airfoil):
+#        res = True
+#        for regex in regex_dict.values():
+#            if regex.fullmatch(airfoil["filename"]):
+#                res = False
+#                break
+#        return res
+#    return predicate
+#
+#def matching_foils_fn(regex, airfoils):
+#    return [foil for foil in filter(regex_pred(regex), airfoils)]
+#
+#def sort_by_name(airfoils):
+#    airfoils.sort(key=lambda airfoil: airfoil['filename'])
 
 def plot_coordinates(ax, coordinates, title=None, plot_chord=False):
     coords = np.array(coordinates)
@@ -202,25 +214,29 @@ def plot_coordinates(ax, coordinates, title=None, plot_chord=False):
     ax.spines['right'].set_visible(False)
     ax.set_xlabel(title[:30])
 
-def make_subplots(axs, airfoils, nrows, ncols):
+def make_subplots(axs, coordinates, titles, nrows, ncols):
     for i in range(nrows):
         for j in range(ncols):
-            airfoil = airfoils[j + ncols*i]
-            plot_coordinates(axs[i,j], airfoil["coordinates"], airfoil["title"])
+            coords = coordinates[j + ncols*i]
+            title = titles[j + ncols*i]
+            plot_coordinates(axs[i,j], coords, title)
 
 
 def main(argv = []):
+    from data import insert_airfoil, insert_airfoils
     if argv:
         path = argv[1]
         if os.path.exists(path):
             if os.path.isdir(path):
                 try:
                     airfoils = parse_dir(path)
+                    insert_airfoils(airfoils)
                 except Exception as e:
                     print(e)
             elif os.path.isfile(path):
                 try:
                     airfoil = parse_file(path)
+                    insert_airfoil(airfoil)
                 except Exception as e:
                     print(e)
             else:

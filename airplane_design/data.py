@@ -29,6 +29,28 @@ class Airfoil(Base):
     lower_planform: Mapped[str] # json
     thickness: Mapped[float]
 
+    def __init__(self, coordinates, upper_planform, lower_planform, *args, **kwargs):
+        self.coordinates = json.dumps(coordinates)
+        self.upper_planform = json.dumps(coordinates)
+        self.lower_planform = json.dumps(coordinates)
+        super(Airfoil, self).__init__(*args, **kwargs)
+
+    def deserialize(self):
+        """
+        Deserializes the airfoil information and returns a dict
+        """
+        airfoil_dict = {
+            "title": self.title,
+            "filename": self.filename,
+            "extension": self.extension,
+            "path": self.path,
+            "coordinates": json.loads(self.coordinates),
+            "upper_planform": json.loads(self.upper_planform),
+            "lower_planform": json.loads(self.lower_planform),
+            "thickness": self.thickness
+        }
+        return airfoil_dict
+
 engine = create_engine('sqlite:///../data/design.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -47,36 +69,19 @@ def insert_airfoil(airfoil_data: Dict, session=session, commit=True):
     """
     Inserts an airfoil to the database
     """
-    airfoil = Airfoil(
-        title=airfoil_data["title"],
-        filename=airfoil_data["filename"],
-        extension=airfoil_data["extension"],
-        path=airfoil_data["path"],
-        coordinates=json.dumps(airfoil_data["coordinates"]),
-        upper_planform=json.dumps(airfoil_data["upper_planform"]),
-        lower_planform=json.dumps(airfoil_data["lower_planform"]),
-        thickness = airfoil_data["thickness"]
-    )
+    airfoil = Airfoil(**airfoil_data)
     session.add(airfoil)
     if commit:
         session.commit()
 
+def insert_airfoils(airfoil_data, session=session):
+    """
+    Inserts a list of airfoils
+    """
+    for airfoil in airfoils:
+        insert_airfoil(airfoil, session=session, commit=False)
+        session.commit()
 
-def output_airfoil(airfoil: Airfoil):
-    """
-    Deserializes the airfoil information and returns a dict
-    """
-    airfoil_dict = {
-        "title": airfoil.title,
-        "filename": airfoil.filename,
-        "extension": airfoil.extension,
-        "path": airfoil.path,
-        "coordinates": json.loads(airfoil.coordinates),
-        "upper_planform": json.loads(airfoil.upper_planform),
-        "lower_planform": json.loads(airfoil.lower_planform),
-        "thickness": airfoil.thickness
-    }
-    return airfoil_dict
 
 def get_airfoils_by_re(re_pattern):
     matches = session.scalars(select(Airfoil).where(Airfoil.filename.regexp_match(re_pattern)))
@@ -89,8 +94,6 @@ if __name__ == "__main__":
     with Session() as session:
         Base.metadata.create_all(engine)
         airfoils = parse_dir("/home/jasper/PARA/3_Resources/06_Airplanes/Airfoil_Coordinates")
-        for airfoil in airfoils:
-            insert_airfoil(airfoil, session=session, commit=False)
-        session.commit()
-
-
+#        for airfoil in airfoils:
+#            insert_airfoil(airfoil, session=session, commit=False)
+#        session.commit()
