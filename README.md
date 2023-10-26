@@ -6,6 +6,7 @@ The code lives in the airplane_design folder. So far, these are the important fi
 
 - airfoil.py: parse and interpret airfoil `.dat` files from [the UIUC Airfoil Coordinates Database](https://m-selig.ae.illinois.edu/ads/coord_database.html#M)
 - data.py: contains ORM ([object-relational mappings](https://docs.sqlalchemy.org)) to interact with the sqlite database at design.db
+- structures.py: contains some straightforward structural calculations. Currently, running this file presents sample Euler beam theory diagrams for a realistic wing with an elliptical lift distribution.
 
 # Setup
 

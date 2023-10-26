@@ -68,6 +68,11 @@ def find_avg_E(E_lower, E_upper, session=session):
 Average Young's Modulus: {(E_lower+E_upper)/2 }
 """)
 
+def get_materials_like(name):
+    materials = session.scalars(select(Material)\
+                                .where(Material.name.like(name))).all()
+    return materials
+
 def insert_airfoil(airfoil_data: Dict, session=session, commit=True):
     """
     Inserts an airfoil to the database

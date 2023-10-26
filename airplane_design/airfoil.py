@@ -115,7 +115,7 @@ def find_thickness(upper,lower):
     f_upper = interpolate.interp1d(get_xs(upper), get_ys(upper))
     f_lower = interpolate.interp1d(get_xs(lower), get_ys(lower))
     f_thickness = lambda x: f_upper(x) - f_lower(x)
-    x = np.linspace(0,1,1000)
+    x = np.linspace(0,1,200)
     y = f_thickness(x)
     return max(y)
 
