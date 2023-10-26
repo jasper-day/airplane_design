@@ -27,6 +27,7 @@ class Airfoil(Base):
     coordinates: Mapped[str] # json
     upper_planform: Mapped[str] # json
     lower_planform: Mapped[str] # json
+    thickness: Mapped[float]
 
 engine = create_engine('sqlite:///../data/design.db')
 Session = sessionmaker(bind=engine)
@@ -53,7 +54,8 @@ def insert_airfoil(airfoil_data: Dict, session=session, commit=True):
         path=airfoil_data["path"],
         coordinates=json.dumps(airfoil_data["coordinates"]),
         upper_planform=json.dumps(airfoil_data["upper_planform"]),
-        lower_planform=json.dumps(airfoil_data["lower_planform"])
+        lower_planform=json.dumps(airfoil_data["lower_planform"]),
+        thickness = airfoil_data["thickness"]
     )
     session.add(airfoil)
     if commit:
@@ -71,7 +73,8 @@ def output_airfoil(airfoil: Airfoil):
         "path": airfoil.path,
         "coordinates": json.loads(airfoil.coordinates),
         "upper_planform": json.loads(airfoil.upper_planform),
-        "lower_planform": json.loads(airfoil.lower_planform)
+        "lower_planform": json.loads(airfoil.lower_planform),
+        "thickness": airfoil.thickness
     }
     return airfoil_dict
 

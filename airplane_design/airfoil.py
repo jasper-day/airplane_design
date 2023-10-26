@@ -7,9 +7,10 @@ airfoil:
     "filename": filename (no extension)
     "extension": file extension
     "path": path to .dat file
-    "coordinates": list of (x,y) tuples defining the airfoil
-    "upper_planform": list of (x,y) tuples defining the top surface of the airfoil
-    "lower_planform": list of (x,y) tuples defining the lower surface of the airfoil
+    "coordinates": list of [x,y] tuples defining the airfoil
+    "upper_planform": list of [x,y] tuples defining the top surface of the airfoil
+    "lower_planform": list of [x,y] tuples defining the lower surface of the airfoil
+    "thickness": thickness of airfoil as a multiple of chord
 }
 """
 
@@ -70,7 +71,7 @@ def _parse_coordinates(lines):
             raise ValueError(f"Could not parse line (regex did not match): {line}")
         x = float(numbers[0])
         y = float(numbers[1])
-        coords.append((x, y))
+        coords.append([x, y])
     res = {"title": title, "coordinates": coords}
     # find upper and lower planforms
     if [0,0] not in coords:
@@ -78,7 +79,7 @@ def _parse_coordinates(lines):
     else:
         origin_index = coords.index([0,0])
     upper_planform = coords[:origin_index+1]
-    # add trailing edge to both
+    # Make sure trailing edge is included
     if [1,0] not in upper_planform:
         upper_planform.insert(0, (1,0))
     lower_planform = coords[origin_index:]
@@ -86,6 +87,9 @@ def _parse_coordinates(lines):
         lower_planform.append([1,0])
     res["upper_planform"] = upper_planform
     res["lower_planform"] = lower_planform
+    # Find airfoil thickness
+    thickness = find_thickness(coords)
+    res["thickness"] = thickness
     return res
 
 def find_sign_change(coordinates):
@@ -98,6 +102,10 @@ def find_sign_change(coordinates):
         if np.sign(d1) == -1 and np.sign(d2) != np.sign(d1):
             return i
     raise ValueError("Sign change not found")
+
+def find_thickness(coordinates):
+    y = [y for [x,y] in coordinates]
+    return max(y) - min(y)
 
 
 filename_regexes = {
