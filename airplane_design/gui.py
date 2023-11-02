@@ -12,7 +12,7 @@ import structures
 import sys
 
 # drop-down menu for materials
-materials = ['cfrp', 'gfrp']
+materials = structures.mat_dict.keys()
 # input box for spar outer diameter
 # input box for spar inner diameter
 # input box for wing span
@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_layout()
         self.create_connections()
         self.update()
+        self.update_plot()
 
     def create_widgets(self):
         self.materials_label = QtWidgets.QLabel("Materials")

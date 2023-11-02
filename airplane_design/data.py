@@ -7,15 +7,39 @@ from sqlalchemy.dialects.sqlite import insert as upsert
 from typing import Optional, Dict
 import json
 
+# multiply by this number to change to consistent units MKS
+unit_table = {
+    "GPa": 1e9,
+    "MPa": 1e6,
+    "kPa": 1e3,
+    "Pa": 1,
+    "g/cc": 1e3,
+    "kg/m^3": 1,
+}
+
 class Base(DeclarativeBase):
     pass
 
 class Material(Base):
     __tablename__ = "materials"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    E_lower: Mapped[float]
-    E_upper: Mapped[float]
+    name: Mapped[str] = mapped_column(unique=True)
+    youngs_mod: Mapped[Optional[float]]
+    youngs_mod_unit: Mapped[Optional[str]]
+    density: Mapped[Optional[float]]
+    density_unit: Mapped[Optional[str]]
+    yield_strength: Mapped[Optional[float]]
+    yield_strength_unit: Mapped[Optional[str]]
+    toughness: Mapped[Optional[float]]
+    toughness_unit: Mapped[Optional[str]]
+    def get_youngs_mod(self):
+        return self.youngs_mod * unit_table[self.youngs_mod_unit]
+    def get_density(self):
+        return self.density * unit_table[self.density_unit]
+    def get_yield_strength(self):
+        return self.density * unit_table[self.yield_strength_unit]
+    def get_toughness(self):
+        return self.toughness * unit_table[self.toughness_unit]
 
 class Airfoil(Base):
     __tablename__ = "airfoils"
@@ -60,19 +84,9 @@ engine = create_engine('sqlite:///data/design.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
-def find_avg_E(E_lower, E_upper, session=session):
-    target_materials = session.execute(select(Material.name, Material.E_lower, Material.E_upper)\
-        .where(Material.E_lower.between(E_lower,E_upper))\
-        .where(Material.E_upper.between(E_lower,E_upper))).all()
-    for (name, E_lower, E_upper) in target_materials:
-        #material = material[0]
-        print(f"""Name: { name }
-Average Young's Modulus: {(E_lower+E_upper)/2 }
-""")
-
 def get_materials_like(name):
     materials = session.scalars(select(Material)\
-                                .where(Material.name.like(name))).all()
+                                .where(Material.name.like(name + '%'))).all()
     return materials
 
 def insert_airfoil(airfoil_data: Dict, session=session, commit=True):
@@ -100,7 +114,7 @@ def get_airfoils_by_re(re_pattern):
 
 if __name__ == "__main__":
     from airfoil import parse_dir
-    engine = create_engine('sqlite:///../data/design.db')
+    engine = create_engine('sqlite:///data/design.db')
     Session = sessionmaker(bind=engine)
     session = Session()
 #    with Session() as session:
