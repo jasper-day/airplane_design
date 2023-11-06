@@ -31,56 +31,50 @@ class Beam():
     material: Material
     dimensions: dict
 
-    def __init__(self, material, dimensions, nyvals=1000):
+    def __init__(self, material, dimensions, nzvals=1000):
         self.material = material 
         self.dimensions = dimensions
-        self.nyvals = nyvals
+        self.nzvals = nzvals
+        self.length = dimensions['length']
+        self.zmax = self.length/2
+        self.zmin = -self.length/2
+        self.I_x = self._find_I_x()
+        self.I_y = self._find_I_y()
+        self.J_z = self._find_J_z()
+        self.volume = self._find_volume()
+        self.mass = self.volume * self.material.get_density() if self.material.get_density() else 0
+        self.zvals = np.linspace(self.zmin, self.zmax, self.nzvals)
+        self.section_modulus = self.I_x / (self.max_height()/2)
+    
+    def _find_I_x(self):
+        raise NotImplementedError
+    def _find_I_y(self):
+        raise NotImplementedError
+    def _find_J_z(self):
+        raise NotImplementedError
+    def _find_volume(self):
+        raise NotImplementedError
+    def max_height(self):
+        return self.dimensions['outer']
     
 
 class HollowCyl(Beam):
     """ Hollow cylinder beam """
-    def __init__(self, material, dimensions,*args, **kwargs):        
-        super(HollowCyl, self).__init__(material, dimensions, *args, **kwargs)
-        self.outer = dimensions['outer']
-        self.inner = dimensions['inner']
-        self.length = dimensions['length']
-        self.ymax = self.length/2
-        self.ymin = -self.length/2
-        self.I_x = self._find_I()
-        self.I_y = self._find_I()
-        self.J_z = self._find_J()
-        self.volume = self._find_volume()
-        self.mass = self.volume * self.material.get_density() if self.material.get_density() else 0
-        self.yvals = np.linspace(self.ymin, self.ymax, self.nyvals)
-        self.section_modulus = self.I_x / (self.outer/2)
 
-    def _find_I(self):
-        return math.pi/64 * (self.outer**4 - self.inner**4)
-    def _find_J(self):
-        return math.pi/32 * (self.outer**4 - self.inner**4)
+    def _find_I_x(self):
+        return math.pi/64 * (self.dimensions['outer']**4 - self.dimensions['inner']**4)
+    _find_I_y = _find_I_x
+    def _find_J_z(self):
+        return math.pi/32 * (self.dimensions['outer']**4 - self.dimensions['inner']**4)
     def _find_volume(self):
-        return math.pi/4 * (self.outer**2 - self.inner**2) * self.length
+        return math.pi/4 * (self.dimensions['outer']**2 - self.dimensions['inner']**2) * self.length
 
 class HollowSquare(Beam):
     """ Hollow square beam """
-    def __init__(self, material, dimensions, *args, **kwargs):
-        super(HollowSquare, self).__init__(material, dimensions, *args, **kwargs)
-        self.outer_width = dimensions['outer']
-        self.inner_width = dimensions['inner']
-        self.length = dimensions['length']
-        self.ymax = self.length/2
-        self.ymin = -self.length/2
-        self.I_x = self._find_I()
-        self.I_y = self._find_I()
-        self.J_z = self._find_J()
-        self.volume = self._find_volume()
-        self.mass = self.volume * self.material.get_density() if material.get_density() else 0
-        self.yvals = np.linspace(self.ymin, self.ymax, self.nyvals)
-        self.section_modulus = self.I_x / (self.outer_width/2)
-    
-    def _find_I(self):
-        return 1/12 * (self.outer_width**4 - self.inner_width**4)
-    def _find_J(self):
+    def _find_I_x(self):
+        return 1/12 * (self.dimensions['outer']**4 - self.dimensions['inner']**4)
+    _find_I_y = _find_I_x
+    def _find_J_z(self):
         return self.I_x + self.I_y
     def _find_volume(self):
         return (self.outer_width**2 - self.inner_width**2) * self.length
@@ -107,14 +101,14 @@ def find_loading(W, beam):
     """ Given a centered array of y-values, returns the loading distribution over the wing """
     # model elliptic lift over the wing
     lift = get_elliptic_lift_fn(beam,W)
-    loading = lift(beam.yvals)
+    loading = lift(beam.zvals)
     # model airplane weight as a delta function at y=0
     loading[len(loading)//2] -= np.sum(loading)
     return loading
 
 def integrate_arr(array, beam):
     """ Integrates an array of values over the wing """
-    return integrate.cumulative_trapezoid(array, beam.yvals[:len(array)])
+    return integrate.cumulative_trapezoid(array, beam.zvals[:len(array)])
 
 
 def find_shear(loading, beam):
@@ -183,7 +177,7 @@ def plot_data(ax, y, data, color="black", xlabel="y distance", ylabel=""):
 
 def make_all_charts(axs, system):
     """ Makes all charts for a given wing """
-    y = system['beam'].yvals
+    y = system['beam'].zvals
     plot_data(axs[0,0], y[:-1], system['shear'], ylabel="shear (N)")
     plot_data(axs[1,0], y[:-2], system['moment'], ylabel="moment (N.m)")
     plot_data(axs[0,1], y[:-3], system['angle'] * 180 / math.pi, ylabel="angle (deg)")
@@ -206,4 +200,5 @@ if __name__ == "__main__":
     system = solve_system(loading, beam)
     fig, axs = plt.subplots(2,2)
     make_all_charts(axs, system)
+    fig.tight_layout()
     plt.show()
