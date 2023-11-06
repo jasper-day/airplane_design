@@ -33,13 +33,25 @@ class Material(Base):
     toughness: Mapped[Optional[float]]
     toughness_unit: Mapped[Optional[str]]
     def get_youngs_mod(self):
-        return self.youngs_mod * unit_table[self.youngs_mod_unit]
+        try:
+            return self.youngs_mod * unit_table[self.youngs_mod_unit]
+        except:
+            return None
     def get_density(self):
-        return self.density * unit_table[self.density_unit]
+        try:
+            return self.density * unit_table[self.density_unit]
+        except:
+            return None
     def get_yield_strength(self):
-        return self.density * unit_table[self.yield_strength_unit]
+        try:
+            return self.density * unit_table[self.yield_strength_unit]
+        except:
+            return None
     def get_toughness(self):
-        return self.toughness * unit_table[self.toughness_unit]
+        try:
+            return self.toughness * unit_table[self.toughness_unit]
+        except:
+            return None
 
 class Airfoil(Base):
     __tablename__ = "airfoils"
